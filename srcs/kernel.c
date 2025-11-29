@@ -6,10 +6,6 @@
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
 
-// #if defined(__i386__)
-// #error "This tutorial needs to be compiled with a ix86-elf compiler"
-// #endif
-
 #define VGA_WIDTH   80
 #define VGA_HEIGHT  25
 #define VGA_MEMORY  0xB8000 
