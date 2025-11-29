@@ -1,31 +1,30 @@
-BITS 32									;Charge le kernel sur une architecture 32
+BITS 32
 
-										;Flags multiboot pour generer un header multiboot, pour savoir comment charger le kernel
-%define ALIGN      (1 << 0)				;align le kernel sur 4octets
-%define MEMINFO    (1 << 1)				;Demande à GRUB de fournir la carte mémoire
-%define FLAGS      (ALIGN | MEMINFO)	;combine les deux define du dessus
-%define MAGIC      0x1BADB002			;permet à GRUB de reconnaitre le kernel pour le boot
-%define CHECKSUM   -(MAGIC + FLAGS)		;permet la validation du header par GRUB
+%define ALIGN      (1 << 0)
+%define MEMINFO    (1 << 1)
+%define FLAGS      (ALIGN | MEMINFO)
+%define MAGIC      0x1BADB002
+%define CHECKSUM   -(MAGIC + FLAGS)
 
-section .multiboot						;ecrire le header dans la section multiboot
-align 4									;GRUB lis les 3 valeurs au début du kernel
-    dd MAGIC							;Dans les les premiers 8ko du binaire tous est alignée sur 4octets 
+section .multiboot
+align 4
+    dd MAGIC
     dd FLAGS
     dd CHECKSUM
 
-section .bss							;la section bss est la section des données non initialisé
+section .bss
 align 16
 stack_bottom:
-    resb 16384							;on réserve une stack de 16KB (16384 bytes)
+    resb 16384
 stack_top:
 
-section .text							;point d'entrée du kernel pour 
-global _start							;GRUB va ensuite jmp sur le _start après avoir charger le fichier elf
+section .text
+global _start
 _start:
-    mov	 esp, stack_top					;initialise la stack (architecture 32)
-    call kernel_main					; appel la fonction main du kernel
+    mov esp, stack_top
+    call kernel_main
 
-.hang:									;Boucle pour que le CPU jmp en boucle
-    cli									;désactive les interuptions
-    hlt									;stop le CPU en cas de return dans le kernel_main
+.hang:
+    cli
+    hlt
     jmp .hang
