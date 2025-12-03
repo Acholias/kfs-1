@@ -23,8 +23,8 @@ stack_top:
 section .text
 global _start
 _start:
-    mov esp, stack_top
-    call kernel_main
+    mov		esp, stack_top
+    call	kernel_main
 
 .hang:
 	cli

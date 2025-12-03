@@ -128,6 +128,9 @@ Ce comportement évite l’exécution d’instructions invalides et permet un ar
 * **OSDev – Bare Bones**
   [https://wiki.osdev.org/Bare_Bones](https://wiki.osdev.org/Bare_Bones)
 
+* **Osdev - Inline_Assembly
+    https://wiki.osdev.org/Inline_Assembly/Examples#I.2FO_access
+
 ---
 
 Ce fichier constitue la toute première étape du boot :

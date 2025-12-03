@@ -80,6 +80,17 @@ void	terminal_set_color(u8 color)
 	terminal_color = color;
 }
 
+void	set_cursor(u16 row, u16 col)
+{
+	u16	pos = row * 80 + col;
+
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, pos & 0xFF);
+
+	outb(0x3D4, 0x0E);
+    outb(0x3D5, (pos >> 8) & 0xFF);
+}
+
 void	terminal_putentry(char c, u8 color, size_t x, size_t y)
 {
 	const size_t index = y * VGA_WIDTH + x;
@@ -88,12 +99,21 @@ void	terminal_putentry(char c, u8 color, size_t x, size_t y)
 
 void	terminal_putchar(char c)
 {
-	terminal_putentry(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH)
+	if (c == '\n')
 	{
+		terminal_row++;
 		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+	}
+	else
+	{
+		terminal_putentry(c, terminal_color, terminal_column, terminal_row);
+		set_cursor(terminal_row, terminal_column + 1);
+		if (++terminal_column == VGA_WIDTH)
+		{
+			terminal_column = 0;
+			if (++terminal_row == VGA_HEIGHT)
+				terminal_row = 0;
+		}
 	}
 }
 
@@ -108,20 +128,9 @@ void	terminal_write_string(const char *data)
 	terminal_write(data, strlen(data));
 }
 
-void	change_cursor_place(u16 row, u16 col)
-{
-	u16	pos = row * 80 + col;
-
-	outb(0x3D4, 0x0F);
-	outb(0x3D5, pos & 0xFF);
-	
-	outb(0x3D4, 0x0E);
-    outb(0x3D5, (pos >> 8) & 0xFF);
-}
-
 void	kernel_main(void)
 {
 	terminal_initialize();
-	change_cursor_place(10, 10);
-	terminal_write_string("42");
+	set_cursor(0, 0);
+	terminal_write_string("Je suis pas sur de comprendre comment je catch les touches pressees !!\n");
 }
