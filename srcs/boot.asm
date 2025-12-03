@@ -1,5 +1,7 @@
 BITS 32
 
+extern kernel_main
+
 %define ALIGN      (1 << 0)
 %define MEMINFO    (1 << 1)
 %define FLAGS      (ALIGN | MEMINFO)
@@ -25,6 +27,6 @@ _start:
     call kernel_main
 
 .hang:
-    cli
-    hlt
+	cli
+	hlt
     jmp .hang
