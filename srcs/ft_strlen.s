@@ -17,5 +17,5 @@ ft_strlen:
 	jmp		.loop
 
 .end
-	pop	ebp
+	pop		ebp
 	ret

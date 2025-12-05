@@ -119,7 +119,6 @@ void terminal_write(const char *data, size_t size)
 }
 
 static bool	shift_pressed =	false;
-// static bool	ctrl_pressed =	false;
 static bool	caps_lock =	false;
 
 static const char scancode_to_ascii[128] = {
@@ -193,7 +192,7 @@ void	terminal_write_string(const char *data)
 void	print_prompt()
 {
 	u8 old_color = terminal_color;
-	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
+	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
 	terminal_write_string("kfs-1 -> ");
 	terminal_set_color(old_color);
 }
