@@ -13,11 +13,11 @@ ISO_DIR = iso
 BOOT_DIR = $(ISO_DIR)/boot
 GRUB_DIR = $(BOOT_DIR)/grub
 
-ASM_SOURCES = $(wildcard $(SRC_DIR)/*.asm)
+ASM_SOURCES = $(wildcard $(SRC_DIR)/*.s)
 C_SOURCES = $(wildcard $(SRC_DIR)/*.c)
 
-ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.asm, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
-C_OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
+ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.s,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
+C_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
 OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
 
 KERNEL = $(BUILD_DIR)/kernel.bin
@@ -28,16 +28,12 @@ all: $(ISO)
 $(ISO): $(KERNEL)
 	@mkdir -p $(GRUB_DIR)
 	@cp $(KERNEL) $(BOOT_DIR)/kernel.bin
-
 	@echo '' >> $(GRUB_DIR)/grub.cfg
 	@echo 'menuentry "KFS-1" {' >> $(GRUB_DIR)/grub.cfg
 	@echo '    multiboot /boot/kernel.bin' >> $(GRUB_DIR)/grub.cfg
 	@echo '    boot' >> $(GRUB_DIR)/grub.cfg
 	@echo '}' >> $(GRUB_DIR)/grub.cfg
-
-	@grub-mkrescue -o $(ISO) $(ISO_DIR) 2>/dev/null \
-	  || grub2-mkrescue -o $(ISO) $(ISO_DIR)
-
+	@grub-mkrescue -o $(ISO) $(ISO_DIR) 2>/dev/null || grub2-mkrescue -o $(ISO) $(ISO_DIR)
 	@echo -e "\033[32mISO créée : $(ISO)\033[0m"
 
 $(KERNEL): $(OBJECTS)
@@ -45,7 +41,7 @@ $(KERNEL): $(OBJECTS)
 	@$(LD) $(LDFLAGS) -o $@ $^
 	@echo -e "\033[32mKernel compilé : $(KERNEL)\033[0m"
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
 	@mkdir -p $(BUILD_DIR)
 	@$(ASM) $(ASMFLAGS) $< -o $@
 
@@ -63,3 +59,4 @@ fclean:
 re: fclean all
 
 .PHONY: all fclean re run
+

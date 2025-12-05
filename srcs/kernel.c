@@ -11,6 +11,8 @@
 #define VGA_HEIGHT  25
 #define VGA_MEMORY  0xB8000 
 
+extern size_t	ft_strlen(const char *str);
+
 enum vga_color
 {
 	VGA_COLOR_BLACK,
@@ -39,16 +41,6 @@ static inline u8 vga_entry_color(enum vga_color fg, enum vga_color bg)
 static inline u16	vga_entry(unsigned char uc, u8 color)
 {
 	return ((u16)uc | (u16)color << 8);
-}
-
-size_t	strlen(const char *str)
-{
-	size_t	index;
-
-	index = 0;
-	while (str[index])
-		index++;
-	return (index);
 }
 
 size_t					terminal_row;
@@ -127,6 +119,7 @@ void terminal_write(const char *data, size_t size)
 }
 
 static bool	shift_pressed =	false;
+// static bool	ctrl_pressed =	false;
 static bool	caps_lock =	false;
 
 static const char scancode_to_ascii[128] = {
@@ -174,7 +167,7 @@ void Keyboard_handler_loop()
 
                 if (c == '\b')
                 {
-                    if (terminal_column > 0)
+                    if (terminal_column > 9)
                     {
                         terminal_column--;
                         terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
@@ -194,7 +187,7 @@ void Keyboard_handler_loop()
 
 void	terminal_write_string(const char *data)
 {
-	terminal_write(data, strlen(data));
+	terminal_write(data, ft_strlen(data));
 }
 
 void	print_prompt()
