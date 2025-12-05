@@ -1,3 +1,4 @@
+#include "../includes/kernel.h"
 #include "../includes/stdbool.h"
 #include "../includes/types.h"
 #include "../includes/io.h"
@@ -97,12 +98,14 @@ void	terminal_putentry(char c, u8 color, size_t x, size_t y)
 	terminal_buffer[index] =vga_entry(c, color);
 }
 
+
 void	terminal_putchar(char c)
 {
 	if (c == '\n')
 	{
 		terminal_row++;
 		terminal_column = 0;
+		print_prompt();
 	}
 	else
 	{
@@ -123,14 +126,88 @@ void terminal_write(const char *data, size_t size)
         terminal_putchar(data[i]);
 }
 
+static bool	shift_pressed =	false;
+static bool	caps_lock =	false;
+
+static const char scancode_to_ascii[128] = {
+    0,27,'1','2','3','4','5','6','7','8',
+    '9','0','-','=','\b','\t',
+    'q','w','e','r','t','y','u','i','o','p',
+    '[',']','\n',0,
+    'a','s','d','f','g','h','j','k','l',';',
+    '\'','`',0,'\\','z','x','c','v','b','n',
+    'm',',','.','/',0,'*',0,' ',0,0
+};
+
+static const char scancode_shift[128] = {
+    0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
+    '(', ')', '_', '+', '\b', '\t',
+    'Q','W','E','R','T','Y','U','I','O','P',
+    '{','}','\n',0,
+    'A','S','D','F','G','H','J','K','L',':',
+    '"','~',0,'|','Z','X','C','V','B','N',
+    'M','<','>','?',0,'*',0,' '
+};
+
+
+void Keyboard_handler_loop()
+{
+    while (1)
+    {
+        if (inb(0x64) & 1)
+        {
+            u8 sc = inb(0x60);
+
+            if (sc == 0x2A || sc == 0x36)
+                shift_pressed = true;
+            else if (sc == 0xAA || sc == 0xB6)
+                shift_pressed = false;
+            else if (sc == 0x3A)
+                caps_lock = !caps_lock;
+            else if (sc < 128)
+            {
+                char c;
+                if (shift_pressed)
+                    c = scancode_shift[sc];
+                else
+                    c = scancode_to_ascii[sc];
+
+                if (c == '\b')
+                {
+                    if (terminal_column > 0)
+                    {
+                        terminal_column--;
+                        terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
+                        set_cursor(terminal_row, terminal_column);
+                    }
+                }
+                else if (c)
+                {
+                    if (caps_lock && c >= 'a' && c <= 'z')
+                        c -= 32;
+                    terminal_putchar(c);
+                }
+            }
+        }
+    }
+}
+
 void	terminal_write_string(const char *data)
 {
 	terminal_write(data, strlen(data));
 }
 
+void	print_prompt()
+{
+	u8 old_color = terminal_color;
+	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
+	terminal_write_string("kfs-1 -> ");
+	terminal_set_color(old_color);
+}
+
 void	kernel_main(void)
 {
 	terminal_initialize();
-	set_cursor(0, 0);
-	terminal_write_string("Je suis pas sur de comprendre comment je catch les touches pressees !!\n");
+	print_prompt();
+	Keyboard_handler_loop();
 }
