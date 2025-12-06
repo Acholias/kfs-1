@@ -3,37 +3,29 @@
 #include "../includes/types.h"
 #include "../includes/io.h"
 
-#if defined(__LINUX__)
-#error "You are not using a cross-compiler, you will most certainly run into trouble"
-#endif
-
-#define VGA_WIDTH   80
-#define VGA_HEIGHT  25
-#define VGA_MEMORY  0xB8000 
-#define PROMPT_LENGTH 9
-
-extern	size_t		ft_strlen(const char *str);
-extern	void		*ft_memcpy(void *dest, const void *src, size_t n);
-
-enum vga_color
-{
-	VGA_COLOR_BLACK,
-	VGA_COLOR_BLUE,
-	VGA_COLOR_GREEN,
-	VGA_COLOR_CYAN,
-	VGA_COLOR_RED,
-	VGA_COLOR_MAGENTA,
-	VGA_COLOR_BROWN,
-	VGA_COLOR_LIGHT_GREY,
-	VGA_COLOR_DARK_GREY,
-	VGA_COLOR_LIGHT_BLUE,
-	VGA_COLOR_LIGHT_GREEN,
-	VGA_COLOR_LIGHT_CYAN,
-	VGA_COLOR_LIGHT_RED2,
-	VGA_COLOR_LIGHT_MAGENTA,
-	VGA_COLOR_LIGHT_BROWN,
-	VGA_COLOR_WHITE,
+static const char scancode_to_ascii[128] = {
+    0,27,'1','2','3','4','5','6','7','8',
+    '9','0','-','=','\b','\t',
+    'q','w','e','r','t','y','u','i','o','p',
+    '[',']','\n',0,
+    'a','s','d','f','g','h','j','k','l',';',
+    '\'','`',0,'\\','z','x','c','v','b','n',
+    'm',',','.','/',0,'*',0,' ',0,0
 };
+
+static const char scancode_shift[128] = {
+    0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
+    '(', ')', '_', '+', '\b', '\t',
+    'Q','W','E','R','T','Y','U','I','O','P',
+    '{','}','\n',0,
+    'A','S','D','F','G','H','J','K','L',':',
+    '"','~',0,'|','Z','X','C','V','B','N',
+    'M','<','>','?',0,'*',0,' '
+};
+
+static bool	shift_pressed =	false;
+static bool	caps_lock =	false;
+static bool	ctrl_pressed = false;
 
 static inline u8 vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
@@ -139,30 +131,6 @@ void terminal_write(const char *data, size_t size)
         terminal_putchar(data[i]);
 }
 
-static bool	shift_pressed =	false;
-static bool	caps_lock =	false;
-static bool	ctrl_pressed = false;
-
-static const char scancode_to_ascii[128] = {
-    0,27,'1','2','3','4','5','6','7','8',
-    '9','0','-','=','\b','\t',
-    'q','w','e','r','t','y','u','i','o','p',
-    '[',']','\n',0,
-    'a','s','d','f','g','h','j','k','l',';',
-    '\'','`',0,'\\','z','x','c','v','b','n',
-    'm',',','.','/',0,'*',0,' ',0,0
-};
-
-static const char scancode_shift[128] = {
-    0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
-    '(', ')', '_', '+', '\b', '\t',
-    'Q','W','E','R','T','Y','U','I','O','P',
-    '{','}','\n',0,
-    'A','S','D','F','G','H','J','K','L',':',
-    '"','~',0,'|','Z','X','C','V','B','N',
-    'M','<','>','?',0,'*',0,' '
-};
-
 void	clear_line()
 {
 	size_t	x = PROMPT_LENGTH;
@@ -179,21 +147,21 @@ void	handle_ctrl_c()
 {
 	u8	old_color = terminal_color;
 	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK));
-	terminal_putchar('^');
-	terminal_putchar('C');
+	
+	terminal_putentry('^', terminal_color, terminal_column, terminal_row);
+	terminal_column++;
+	terminal_putentry('C', terminal_color, terminal_column, terminal_row);
+	terminal_column++;
+	
 	terminal_set_color(old_color);
-
 	terminal_column = 0;
-	++terminal_row;
-
+	terminal_row++;
+	
 	if (terminal_row >= VGA_HEIGHT)
 		terminal_scroll();
-
+	
 	print_prompt();
 }
-
-#define CTRL_PRESS   0x1D
-#define CTRL_RELEASE 0x9D
 
 void Keyboard_handler_loop()
 {
@@ -208,12 +176,12 @@ void Keyboard_handler_loop()
 			else if (sc == CTRL_RELEASE)
 				ctrl_pressed = false;
 			else if (ctrl_pressed && sc == 0x2E)
-			{
 				handle_ctrl_c();
-			}
 			else if (ctrl_pressed && sc == 0x26)
 			{
 				terminal_initialize();
+				terminal_row = 0;
+				terminal_column = 0;
 				print_prompt();
 			}
 			else if (sc == 0x2A || sc == 0x36)
@@ -260,8 +228,8 @@ void	print_prompt()
 	u8 old_color = terminal_color;
 	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
 	terminal_write_string("kfs-1 -> ");
-	set_cursor(terminal_row, terminal_column);
 	terminal_set_color(old_color);
+	set_cursor(terminal_row, terminal_column);
 }
 
 void	kernel_main(void)
