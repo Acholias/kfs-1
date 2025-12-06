@@ -356,6 +356,10 @@ void terminal_write_string(const char *data)
 - **Intel 80386 Programmer's Reference**  
   [https://pdos.csail.mit.edu/6.828/2018/readings/i386.pdf](https://pdos.csail.mit.edu/6.828/2018/readings/i386.pdf)
 
+- **Felix Cloutier's x86 and amd64 Instruction Reference**  
+  [https://www.felixcloutier.com/x86/](https://www.felixcloutier.com/x86/)  
+  Référence complète et moderne de toutes les instructions x86/x86-64 avec explications détaillées
+
 ---
 
 ## 🎯 Points clés à retenir

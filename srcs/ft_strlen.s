@@ -1,8 +1,8 @@
 ; ft_strlen
 ; size_t	ft_strlen(const char *s)
 
-
-global	ft_strlen
+section .text
+	global	ft_strlen
 
 ft_strlen:
 	push	ebp
@@ -16,6 +16,6 @@ ft_strlen:
 	inc		eax
 	jmp		.loop
 
-.end
+.end:
 	pop		ebp
 	ret

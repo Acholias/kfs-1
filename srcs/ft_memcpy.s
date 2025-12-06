@@ -26,7 +26,7 @@ ft_memcpy:
 	dec		ecx
 	jnz		.loop
 
-.end
+.end:
 	pop		edi
 	pop		esi
 	pop		ebp
