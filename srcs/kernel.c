@@ -115,7 +115,6 @@ void	terminal_putchar(char c)
 		terminal_row++;
 		terminal_column = 0;
 
-
 		if (terminal_row >= VGA_HEIGHT)
 			terminal_scroll();
 	
@@ -142,6 +141,7 @@ void terminal_write(const char *data, size_t size)
 
 static bool	shift_pressed =	false;
 static bool	caps_lock =	false;
+static bool	ctrl_pressed = false;
 
 static const char scancode_to_ascii[128] = {
     0,27,'1','2','3','4','5','6','7','8',
@@ -163,47 +163,91 @@ static const char scancode_shift[128] = {
     'M','<','>','?',0,'*',0,' '
 };
 
+void	clear_line()
+{
+	size_t	x = PROMPT_LENGTH;
+	while (x < VGA_WIDTH)
+	{
+		terminal_putentry(' ', terminal_color, x, terminal_row);
+		++x;
+	}
+	terminal_column = PROMPT_LENGTH;
+	set_cursor(terminal_row, terminal_column);
+}
+
+void	handle_ctrl_c()
+{
+	u8	old_color = terminal_color;
+	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK));
+	terminal_putchar('^');
+	terminal_putchar('C');
+	terminal_set_color(old_color);
+
+	terminal_column = 0;
+	++terminal_row;
+
+	if (terminal_row >= VGA_HEIGHT)
+		terminal_scroll();
+
+	print_prompt();
+}
+
+#define CTRL_PRESS   0x1D
+#define CTRL_RELEASE 0x9D
 
 void Keyboard_handler_loop()
 {
-    while (1)
-    {
-        if (inb(0x64) & 1)
-        {
-            u8 sc = inb(0x60);
+	while (1)
+	{
+		if (inb(0x64) & 1)
+		{
+			u8 sc = inb(0x60);
 
-            if (sc == 0x2A || sc == 0x36)
-                shift_pressed = true;
-            else if (sc == 0xAA || sc == 0xB6)
-                shift_pressed = false;
-            else if (sc == 0x3A)
-                caps_lock = !caps_lock;
-            else if (sc < 128)
-            {
-                char c;
-                if (shift_pressed)
-                    c = scancode_shift[sc];
-                else
-                    c = scancode_to_ascii[sc];
+			if (sc == CTRL_PRESS)
+				ctrl_pressed = true;
+			else if (sc == CTRL_RELEASE)
+				ctrl_pressed = false;
+			else if (ctrl_pressed && sc == 0x2E)
+			{
+				handle_ctrl_c();
+			}
+			else if (ctrl_pressed && sc == 0x26)
+			{
+				terminal_initialize();
+				print_prompt();
+			}
+			else if (sc == 0x2A || sc == 0x36)
+				shift_pressed = true;
+			else if (sc == 0xAA || sc == 0xB6)
+				shift_pressed = false;
+			else if (sc == 0x3A)
+				caps_lock = !caps_lock;
+			else if (sc < 128 && !ctrl_pressed)
+			{
+				char c;
+				if (shift_pressed)
+					c = scancode_shift[sc];
+				else
+					c = scancode_to_ascii[sc];
 
-                if (c == '\b')
-                {
-                    if (terminal_column > PROMPT_LENGTH)
-                    {
-                        terminal_column--;
-                        terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
-                        set_cursor(terminal_row, terminal_column);
-                    }
-                }
-                else if (c)
-                {
-                    if (caps_lock && c >= 'a' && c <= 'z')
-                        c -= 32;
-                    terminal_putchar(c);
-                }
-            }
-        }
-    }
+				if (c == '\b')
+				{
+					if (terminal_column > PROMPT_LENGTH)
+					{
+						terminal_column--;
+						terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
+						set_cursor(terminal_row, terminal_column);
+					}
+				}
+				else if (c)
+				{
+					if (caps_lock && c >= 'a' && c <= 'z')
+						c -= 32;
+					terminal_putchar(c);
+				}
+			}
+		}
+	}
 }
 
 void	terminal_write_string(const char *data)

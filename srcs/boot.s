@@ -28,5 +28,5 @@ _start:
 	cli
 
 .hang:
-	hlt
-    jmp .hang
+    hlt
+	jmp .hang
