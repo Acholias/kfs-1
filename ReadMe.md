@@ -149,15 +149,15 @@ ft_memcpy:
     mov     ebp, esp           ; Établit le stack frame
     push    esi                ; Sauvegarde esi
     push    edi                ; Sauvegarde edi
-    
+
     mov     edi, [ebp + 8]     ; edi = dest
     mov     esi, [ebp + 12]    ; esi = src
     mov     ecx, [ebp + 16]    ; ecx = n
-    
+
     mov     eax, edi           ; Sauvegarde dest pour le retour
     cmp     ecx, 0             ; Si n == 0
     je      .end               ; Quitter directement
-    
+
 .loop:
     mov     bl, [esi]          ; Lire 1 octet depuis src
     mov     [edi], bl          ; Écrire dans dest
@@ -165,7 +165,7 @@ ft_memcpy:
     inc     edi                ; dest++
     dec     ecx                ; n--
     jnz     .loop              ; Continuer si ecx != 0
-    
+
 .end:
     pop     edi                ; Restaure edi
     pop     esi                ; Restaure esi
@@ -244,8 +244,8 @@ Restaure l'état des registres et retourne (la valeur dans `eax` est automatique
 ### 💡 Utilisation
 Cette fonction est utilisée dans `terminal_scroll()` pour copier efficacement les lignes VGA :
 ```c
-ft_memcpy((void*)terminal_buffer, 
-          (void*)(terminal_buffer + VGA_WIDTH), 
+ft_memcpy((void*)terminal_buffer,
+          (void*)(terminal_buffer + VGA_WIDTH),
           (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(u16));
 ```
 
@@ -270,13 +270,13 @@ ft_strlen:
     mov     ebp, esp           ; Établit le stack frame
     mov     eax, 0             ; Compteur = 0
     mov     edi, [ebp + 8]     ; edi = pointeur sur la chaîne
-    
+
 .loop:
     cmp     byte [edi + eax], 0  ; Compare avec '\0'
     je      .end                 ; Si '\0', termine
     inc     eax                  ; Compteur++
     jmp     .loop                ; Continue
-    
+
 .end:
     pop     ebp                ; Restaure ebp
     ret                        ; Retourne (eax contient la longueur)
@@ -340,24 +340,24 @@ void terminal_write_string(const char *data)
 ## 📚 Ressources
 
 ### Documentation officielle
-- **OSDev – Bare Bones**  
+- **OSDev – Bare Bones**
   [https://wiki.osdev.org/Bare_Bones](https://wiki.osdev.org/Bare_Bones)
 
-- **OSDev – Inline Assembly**  
+- **OSDev – Inline Assembly**
   [https://wiki.osdev.org/Inline_Assembly/Examples](https://wiki.osdev.org/Inline_Assembly/Examples)
 
-- **Multiboot Specification**  
+- **Multiboot Specification**
   [https://www.gnu.org/software/grub/manual/multiboot/multiboot.html](https://www.gnu.org/software/grub/manual/multiboot/multiboot.html)
 
 ### Tutoriels assembleur x86
-- **x86 Assembly Guide (Yale)**  
+- **x86 Assembly Guide (Yale)**
   [https://flint.cs.yale.edu/cs421/papers/x86-asm/asm.html](https://flint.cs.yale.edu/cs421/papers/x86-asm/asm.html)
 
-- **Intel 80386 Programmer's Reference**  
+- **Intel 80386 Programmer's Reference**
   [https://pdos.csail.mit.edu/6.828/2018/readings/i386.pdf](https://pdos.csail.mit.edu/6.828/2018/readings/i386.pdf)
 
-- **Felix Cloutier's x86 and amd64 Instruction Reference**  
-  [https://www.felixcloutier.com/x86/](https://www.felixcloutier.com/x86/)  
+- **Felix Cloutier's x86 and amd64 Instruction Reference**
+  [https://www.felixcloutier.com/x86/](https://www.felixcloutier.com/x86/)
   Référence complète et moderne de toutes les instructions x86/x86-64 avec explications détaillées
 
 ---

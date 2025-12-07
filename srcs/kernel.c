@@ -4,23 +4,23 @@
 #include "../includes/io.h"
 
 static const char scancode_to_ascii[128] = {
-    0,27,'1','2','3','4','5','6','7','8',
-    '9','0','-','=','\b','\t',
-    'q','w','e','r','t','y','u','i','o','p',
-    '[',']','\n',0,
-    'a','s','d','f','g','h','j','k','l',';',
-    '\'','`',0,'\\','z','x','c','v','b','n',
-    'm',',','.','/',0,'*',0,' ',0,0
+	0,27,'1','2','3','4','5','6','7','8',
+	'9','0','-','=','\b','\t',
+	'q','w','e','r','t','y','u','i','o','p',
+	'[',']','\n',0,
+	'a','s','d','f','g','h','j','k','l',';',
+	'\'','`',0,'\\','z','x','c','v','b','n',
+	'm',',','.','/',0,'*',0,' ',0,0
 };
 
 static const char scancode_shift[128] = {
-    0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
-    '(', ')', '_', '+', '\b', '\t',
-    'Q','W','E','R','T','Y','U','I','O','P',
-    '{','}','\n',0,
-    'A','S','D','F','G','H','J','K','L',':',
-    '"','~',0,'|','Z','X','C','V','B','N',
-    'M','<','>','?',0,'*',0,' '
+	0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
+	'(', ')', '_', '+', '\b', '\t',
+	'Q','W','E','R','T','Y','U','I','O','P',
+	'{','}','\n',0,
+	'A','S','D','F','G','H','J','K','L',':',
+	'"','~',0,'|','Z','X','C','V','B','N',
+	'M','<','>','?',0,'*',0,' '
 };
 
 static bool	shift_pressed =	false;
@@ -75,7 +75,7 @@ void	set_cursor(u16 row, u16 col)
 	outb(0x3D5, pos & 0xFF);
 
 	outb(0x3D4, 0x0E);
-    outb(0x3D5, (pos >> 8) & 0xFF);
+	outb(0x3D5, (pos >> 8) & 0xFF);
 }
 
 void	terminal_putentry(char c, u8 color, size_t x, size_t y)
@@ -86,7 +86,7 @@ void	terminal_putentry(char c, u8 color, size_t x, size_t y)
 
 void	terminal_scroll()
 {
-	size_t	bytes_copy = (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(u16);	
+	size_t	bytes_copy = (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(u16);
 	ft_memcpy((void*)terminal_buffer, (void*)(terminal_buffer + VGA_WIDTH), bytes_copy);
 
 	size_t	x = 0;
@@ -109,7 +109,7 @@ void	terminal_putchar(char c)
 
 		if (terminal_row >= VGA_HEIGHT)
 			terminal_scroll();
-	
+
 		print_prompt();
 	}
 	else
@@ -127,8 +127,8 @@ void	terminal_putchar(char c)
 
 void terminal_write(const char *data, size_t size)
 {
-    for (size_t i = 0; i < size; i++)
-        terminal_putchar(data[i]);
+	for (size_t i = 0; i < size; i++)
+		terminal_putchar(data[i]);
 }
 
 void	clear_line()
@@ -147,19 +147,19 @@ void	handle_ctrl_c()
 {
 	u8	old_color = terminal_color;
 	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK));
-	
+
 	terminal_putentry('^', terminal_color, terminal_column, terminal_row);
 	terminal_column++;
 	terminal_putentry('C', terminal_color, terminal_column, terminal_row);
 	terminal_column++;
-	
+
 	terminal_set_color(old_color);
 	terminal_column = 0;
 	terminal_row++;
-	
+
 	if (terminal_row >= VGA_HEIGHT)
 		terminal_scroll();
-	
+
 	print_prompt();
 }
 

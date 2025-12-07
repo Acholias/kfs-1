@@ -33,7 +33,7 @@ $(ISO): $(KERNEL)
 	@echo '    multiboot /boot/kernel.bin' >> $(GRUB_DIR)/grub.cfg
 	@echo '    boot' >> $(GRUB_DIR)/grub.cfg
 	@echo '}' >> $(GRUB_DIR)/grub.cfg
-	@grub-mkrescue -o $(ISO) $(ISO_DIR) 2>/dev/null || grub2-mkrescue -o $(ISO) $(ISO_DIR)
+	@grub-mkrescue -o $(ISO) $(ISO_DIR) || grub2-mkrescue -o $(ISO) $(ISO_DIR)
 	@echo -e "\033[32mISO créée : $(ISO)\033[0m"
 
 $(KERNEL): $(OBJECTS)

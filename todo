@@ -1,0 +1,10 @@
+[#] Install GRUB image
+[#] ASM boot code
+[#] Kernel code
+[ ] Code size < 10 MB
+[#] Display text
+[#] Scroll
+[#] Cursor
+[ ] Printf/printk
+[#] Keyboard input
+[ ] Different screens
