@@ -251,6 +251,27 @@ void	print_prompt()
 	set_cursor(terminal_row, PROMPT_LENGTH);
 }
 
+void	save_screen() 
+{
+	// Copie le VGA dans le buffer memoire
+}
+
+void	load_screen()
+{
+	// Copie le buffer memoire dans le VGA
+}
+
+void	switch_screen()
+{
+	// Save le screen actuelle et load le nouveau
+}
+
+// Pas sur de faire cette fonction
+// void	draw_screen_index()
+// {
+// 	Affiche le numero du terminal actuelle en haut de l'ecran
+// }
+
 void	kernel_main(void)
 {
 	terminal_initialize();
