@@ -77,5 +77,9 @@ void	process_scancode(u8 scancode);
 void	keyboard_handler_loop();
 void	terminal_write_string(const char *data);
 void	print_prompt();
+void	save_screen(size_t screen_id); 
+void	load_screen(size_t screen_id);
+void	switch_screen(size_t new_screen_id);
+void	draw_screen_index();
 
 #endif

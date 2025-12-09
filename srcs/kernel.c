@@ -13,6 +13,7 @@ t_screen				screens[NUM_SCREENS];
 static bool	shift_pressed =	false;
 static bool	caps_lock =	false;
 static bool	ctrl_pressed = false;
+static bool alt_pressed = false;
 
 static const char scancode_to_ascii[128] = {
     0,27,'1','2','3','4','5','6','7','8',
@@ -52,6 +53,16 @@ void	terminal_initialize()
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);
 	terminal_buffer = (u16*)VGA_MEMORY;
 	current_screen = 0;
+	
+	// for (size_t s = 0; s < NUM_SCREENS; s++)
+	// {
+	// 	screens[s].save_row = 0;
+	// 	screens[s].save_column = 0;
+	// 	screens[s].save_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);
+	//
+	// 	for (size_t i = 0; i < VGA_HEIGHT * VGA_WIDTH; i++)
+	// 		screens[s].save_buffer[i] = vga_entry(' ', screens[s].save_color);
+	// }
 
 	size_t	y = 0;
 	while (y < VGA_HEIGHT)
@@ -67,6 +78,16 @@ void	terminal_initialize()
 	}
 }
 
+void terminal_clear_screen()
+{
+    for (size_t y = 0; y < VGA_HEIGHT; y++)
+        for (size_t x = 0; x < VGA_WIDTH; x++)
+            terminal_buffer[y * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
+
+    terminal_row = 0;
+    terminal_column = 0;
+	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);
+}
 void	terminal_set_color(u8 color)
 {
 	terminal_color = color;
@@ -183,7 +204,7 @@ void	handle_backspace()
 
 void	handle_ctrl_l()
 {
-	terminal_initialize();
+	terminal_clear_screen();
 	print_prompt();
 }
 
@@ -209,6 +230,25 @@ void	process_scancode(u8 scancode)
 		handle_regular_char(c);
 }
 
+void	handle_terminal(u8 scancode)
+{
+	if (scancode == ALT_PRESS)
+		alt_pressed = true;
+	else if (scancode == ALT_RELEASE)
+		alt_pressed = false;
+	
+	else if (alt_pressed && scancode == LEFT_ARROW)
+	{
+		size_t	new_screen = (current_screen == 0) ? NUM_SCREENS - 1 : current_screen - 1;
+		switch_screen(new_screen);
+	}
+	else if (alt_pressed && scancode == RIGHT_ARROW)
+	{
+		size_t	new_screen = (current_screen + 1) % NUM_SCREENS;
+		switch_screen(new_screen);
+	}
+}
+
 void	keyboard_handler_loop()
 {
 	while (1)
@@ -216,7 +256,8 @@ void	keyboard_handler_loop()
 		if (inb(0x64) & 1)
 		{
 			u8 scancode = inb(0x60);
-			
+		
+			handle_terminal(scancode);
 			if (scancode == CTRL_PRESS)
 				ctrl_pressed = true;
 			else if (scancode == CTRL_RELEASE)
@@ -248,29 +289,65 @@ void	print_prompt()
 	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
 	terminal_write_string("kfs-1 -> ");
 	terminal_set_color(old_color);
+	draw_screen_index();
 	set_cursor(terminal_row, PROMPT_LENGTH);
 }
 
-void	save_screen() 
+void	save_screen(size_t screen_id) 
 {
-	// Copie le VGA dans le buffer memoire
+	if (screen_id >= NUM_SCREENS)
+		return ;
+	ft_memcpy(screens[screen_id].save_buffer, (void*)terminal_buffer,
+		   VGA_WIDTH * VGA_HEIGHT * sizeof(u16));
+	
+	screens[screen_id].save_row = terminal_row;
+	screens[screen_id].save_column = terminal_column;
+	screens[screen_id].save_color = terminal_color;
+
 }
 
-void	load_screen()
+void	load_screen(size_t screen_id)
 {
-	// Copie le buffer memoire dans le VGA
+	if (screen_id >=NUM_SCREENS)
+		return ;
+
+	ft_memcpy((void*)terminal_buffer, screens[screen_id].save_buffer,
+		   VGA_WIDTH * VGA_HEIGHT * sizeof(u16));
+
+	terminal_row = screens[screen_id].save_row;
+	terminal_column = screens[screen_id].save_column;
+	terminal_color = screens[screen_id].save_color;
+
+	draw_screen_index();
+	set_cursor(terminal_row, terminal_column);
 }
 
-void	switch_screen()
+void	switch_screen(size_t new_screen_id)
 {
-	// Save le screen actuelle et load le nouveau
+	if (new_screen_id >= NUM_SCREENS || new_screen_id == current_screen)
+		return ;
+
+	save_screen(current_screen);
+	current_screen = new_screen_id;
+	load_screen(new_screen_id);
 }
 
-// Pas sur de faire cette fonction
-// void	draw_screen_index()
-// {
-// 	Affiche le numero du terminal actuelle en haut de l'ecran
-// }
+void	draw_screen_index()
+{
+	const char	*text = "Screen  /  ";
+	size_t		start_x = VGA_WIDTH - 13;
+	u8			color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+
+	for (size_t	index = 0; text[index]; ++index)
+	{
+		if (index == 7)
+			terminal_buffer[start_x + index] = vga_entry('1' + current_screen, color);
+		else if (index == 9)
+			terminal_buffer[start_x + index] = vga_entry('0' + NUM_SCREENS, color);
+		else
+			terminal_buffer[start_x + index] = vga_entry(text[index], color);
+	}
+}
 
 void	kernel_main(void)
 {
