@@ -272,7 +272,7 @@ void	keyboard_handler_loop()
 			u8 scancode = inb(0x60);
 			
 			handle_switch_terminal(scancode);
-			if (!ALT_PRESS && (scancode == RIGHT_ARROW || scancode == LEFT_ARROW))
+			if (scancode == RIGHT_ARROW || scancode == LEFT_ARROW)
 				arrow_handler(scancode);
 			else if (scancode == CTRL_PRESS)
 				ctrl_pressed = true;
@@ -313,6 +313,7 @@ void	save_screen(size_t screen_id)
 {
 	if (screen_id >= NUM_SCREENS)
 		return ;
+	
 	ft_memcpy(screens[screen_id].save_buffer, (void*)terminal_buffer,
 		   VGA_WIDTH * VGA_HEIGHT * sizeof(u16));
 	

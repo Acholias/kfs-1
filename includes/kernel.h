@@ -7,7 +7,7 @@
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
 
-// VGA est la grille pour le protocole video du terminal a l'adresse memoire 0xb8000
+// VGA est la grille pour le protocole video du cpu a l'adresse memoire 0xb8000
 # define VGA_WIDTH		80
 # define VGA_HEIGHT		25
 # define VGA_MEMORY		0xB8000
