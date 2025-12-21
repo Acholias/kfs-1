@@ -9,6 +9,10 @@ volatile u16			*terminal_buffer;
 size_t					current_screen;
 t_screen				screens[NUM_SCREENS];
 
+static	char			input_buffer[VGA_WIDTH];
+static	size_t			input_lenght;
+static	size_t			cursor_position;
+
 static bool	shift_pressed =	false;
 static bool	caps_lock =	false;
 static bool	ctrl_pressed = false;
@@ -66,13 +70,16 @@ void	terminal_initialize()
 		y++;
 	}
 
-	for (size_t s = 0; s < NUM_SCREENS; s++)
+	for (size_t s = 0; s < NUM_SCREENS; ++s)
 	{
 		screens[s].save_row = 0;
 		screens[s].save_column = 0;
 		screens[s].save_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);	
 		ft_memcpy(screens[s].save_buffer, (void *)terminal_buffer, VGA_WIDTH * VGA_HEIGHT * sizeof(u16));
 	}
+	input_lenght = 0;
+	cursor_position = 0;
+	ft_memset(input_buffer, 0, VGA_WIDTH);
 }
 
 void	terminal_clear_screen()
@@ -170,11 +177,23 @@ void	clear_line()
 	print_prompt();
 }
 
+void	redraw_input_line()
+{
+	for (size_t index = 0; index < VGA_WIDTH - PROMPT_LENGTH; ++index)
+		terminal_putentry(' ', terminal_color, PROMPT_LENGTH + index, terminal_row);
+
+	for (size_t index = 0; index < input_lenght; ++index)
+		terminal_putentry(input_buffer[index], terminal_color, PROMPT_LENGTH + index, terminal_row);
+
+	terminal_column = PROMPT_LENGTH + cursor_position;
+	set_cursor(terminal_row, terminal_column);
+}
+
 void	handle_ctrl_c()
 {
 	u8	old_color = terminal_color;
-	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK));
-	
+
+	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK));	
 	terminal_putentry('^', terminal_color, terminal_column, terminal_row);
 	terminal_column++;
 	terminal_putentry('C', terminal_color, terminal_column, terminal_row);
@@ -187,22 +206,36 @@ void	handle_ctrl_c()
 	if (terminal_row >= VGA_HEIGHT)
 		terminal_scroll();
 	
+	input_lenght = 0;
+	cursor_position = 0;
+	ft_memset(input_buffer, 0, VGA_WIDTH);
+	
 	print_prompt();
 }
 
 void	handle_backspace()
 {
-	if (terminal_column > PROMPT_LENGTH)
+	if (cursor_position > 0)
 	{
-		--terminal_column;
-		terminal_putentry(' ', terminal_color, terminal_column, terminal_row);	
-		set_cursor(terminal_row, terminal_column);
+		for (size_t index = cursor_position - 1; index < input_lenght - 1; ++index)
+			input_buffer[index] = input_buffer[index + 1];
+	
+		input_buffer[input_lenght - 1] = '\0';
+		--input_lenght;
+		--cursor_position;
+	
+		redraw_input_line();
 	}
 }
 
 void	handle_ctrl_l()
 {
 	terminal_clear_screen();
+	
+	input_lenght = 0;
+	cursor_position = 0;
+	ft_memset(input_buffer, 0, VGA_WIDTH);
+
 	print_prompt();
 }
 
@@ -210,7 +243,21 @@ void	handle_regular_char(char c)
 {
 	if (caps_lock && c >= 'a' && c <= 'z')
 		c -= 32;
-	terminal_putchar(c);
+
+	if (input_lenght >= VGA_WIDTH - PROMPT_LENGTH - 1)
+		return ;
+
+	if (cursor_position < input_lenght)
+	{
+		for	(size_t index = input_lenght; index > cursor_position; --index)
+			input_buffer[index] = input_buffer[index - 1];
+	}
+
+	input_buffer[cursor_position] = c;
+	++input_lenght;
+	++cursor_position;
+
+	redraw_input_line();
 }
 
 void	process_scancode(u8 scancode)
@@ -247,21 +294,26 @@ void	handle_switch_terminal(u8 scancode)
 	}
 }
 
-// Faire en sorte que le cursor se stop si il n'y a pas de text !
 void	arrow_handler(u8 scancode)
 {
 	if (scancode == LEFT_ARROW)
 	{
-		if (terminal_column > PROMPT_LENGTH + 2)
-			--terminal_column;
+		if (cursor_position > 0)
+		{
+			--cursor_position;
+			terminal_column = PROMPT_LENGTH + cursor_position;
+			set_cursor(terminal_row, terminal_column);
+		}
 	}
-
 	else if (scancode == RIGHT_ARROW)
 	{
-		if (terminal_column < VGA_WIDTH - 1)
-			++terminal_column;
+		if (cursor_position < input_lenght)
+		{
+			++cursor_position;
+			terminal_column = PROMPT_LENGTH + cursor_position;
+			set_cursor(terminal_row, terminal_column);
+		}
 	}
-	set_cursor(terminal_row, terminal_column);
 }
 
 void	keyboard_handler_loop()

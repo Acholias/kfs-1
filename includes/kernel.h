@@ -53,14 +53,15 @@ enum vga_color
 
 typedef struct	s_screen
 {
-	u16			save_buffer[VGA_WIDTH * VGA_HEIGHT];
-	u8			save_color;
 	size_t		save_row;
 	size_t		save_column;
-}	t_screen;
+	u8			save_color;
+	u16			save_buffer[VGA_WIDTH * VGA_HEIGHT];
+}	__attribute__((packed)) t_screen;
 
 extern	size_t		ft_strlen(const char *str);
 extern	void		*ft_memcpy(void *dest, const void *src, size_t n);
+extern	void		ft_memset(void *s, int c, size_t n);	
 
 void	terminal_initialize();
 void	terminal_set_color(u8 color);
