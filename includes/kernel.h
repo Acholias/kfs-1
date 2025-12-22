@@ -30,6 +30,7 @@
 # define NUM_SCREENS	2
 # define NEWLINE		'\n'
 # define BACKSPACE		'\b'
+# define ENTER			0x1C
 
 enum vga_color
 {
@@ -62,6 +63,9 @@ typedef struct	s_screen
 extern	size_t		ft_strlen(const char *str);
 extern	void		*ft_memcpy(void *dest, const void *src, size_t n);
 extern	void		ft_memset(void *s, int c, size_t n);	
+
+//printk
+int		printk(const char *str, ...);
 
 void	terminal_initialize();
 void	terminal_set_color(u8 color);

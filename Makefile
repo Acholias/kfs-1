@@ -4,7 +4,7 @@ LD = ld
 
 ASMFLAGS = -f elf32
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-         -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c
+         -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -c
 LDFLAGS = -m elf_i386 -T $(SRC_DIR)/linker.ld
 
 SRC_DIR = srcs

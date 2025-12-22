@@ -1,13 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   kernel.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lumugot <lumugot@42angouleme.fr>           +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/22 18:06:36 by lumugot           #+#    #+#             */
+/*   Updated: 2025/12/22 18:36:22 by lumugot          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../includes/kernel.h"
 #include "../includes/stdbool.h"
 #include "../includes/io.h"
 
-size_t					terminal_row;
-size_t					terminal_column;
-u8						terminal_color;
-volatile u16			*terminal_buffer;
-size_t					current_screen;
-t_screen				screens[NUM_SCREENS];
+size_t			terminal_row = 0;
+size_t			terminal_column = 0;
+u8				terminal_color = 0;
+volatile u16	*terminal_buffer = 0;
+size_t			current_screen = 0;
+t_screen		screens[NUM_SCREENS];
 
 static	char			input_buffer[VGA_WIDTH];
 static	size_t			input_lenght;
@@ -22,7 +34,7 @@ static const char scancode_to_ascii[128] = {
     0,27,'1','2','3','4','5','6','7','8',
     '9','0','-','=','\b','\t',
     'q','w','e','r','t','y','u','i','o','p',
-    '[',']','\n',0,
+    '[',']',0,0,
     'a','s','d','f','g','h','j','k','l',';',
     '\'','`',0,'\\','z','x','c','v','b','n',
     'm',',','.','/',0,'*',0,' ',0,0
@@ -32,7 +44,7 @@ static const char scancode_shift[128] = {
     0, 27, '!', '@', '#', '$', '%', '^', '&', '*',
     '(', ')', '_', '+', '\b', '\t',
     'Q','W','E','R','T','Y','U','I','O','P',
-    '{','}','\n',0,
+    '{','}',0,0,
     'A','S','D','F','G','H','J','K','L',':',
     '"','~',0,'|','Z','X','C','V','B','N',
     'M','<','>','?',0,'*',0,' '
@@ -140,8 +152,7 @@ void	terminal_putchar(char c)
 
 		if (terminal_row >= VGA_HEIGHT)
 			terminal_scroll();
-	
-		print_prompt();
+		set_cursor(terminal_row, terminal_column);
 	}
 	else
 	{
@@ -260,9 +271,24 @@ void	handle_regular_char(char c)
 	redraw_input_line();
 }
 
+void	handle_enter()
+{
+	terminal_putchar('\n');
+	input_lenght = 0;
+	cursor_position = 0;
+	ft_memset(input_buffer, 0, VGA_WIDTH);
+	print_prompt();
+}
+
 void	process_scancode(u8 scancode)
 {
 	char c;
+	
+	if (scancode == ENTER)
+	{
+		handle_enter();
+		return ;
+	}
 	
 	if (shift_pressed)
 		c = scancode_shift[scancode];
@@ -349,14 +375,28 @@ void	keyboard_handler_loop()
 
 void	terminal_write_string(const char *data)
 {
-	terminal_write(data, ft_strlen(data));
+	size_t i = 0;
+	while (data[i])
+	{
+		if (data[i] == '\n')
+			terminal_putchar('\n');
+		else
+			terminal_putchar(data[i]);
+		i++;
+	}
 }
 
 void	print_prompt()
 {
 	u8 old_color = terminal_color;
 	terminal_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-	terminal_write_string("kfs-1 -> ");
+	size_t i = 0;
+	const char *prompt = "kfs-1 -> ";
+	while (prompt[i])
+	{
+		terminal_putchar(prompt[i]);
+		i++;
+	}
 	terminal_set_color(old_color);
 	draw_screen_index();
 	set_cursor(terminal_row, PROMPT_LENGTH);
@@ -421,6 +461,8 @@ void	draw_screen_index()
 void	kernel_main(void)
 {
 	terminal_initialize();
+	printk("%d\n", 42);
+	// printk("\n");
 	print_prompt();
 	keyboard_handler_loop();
 }
