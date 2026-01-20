@@ -6,7 +6,7 @@
 /*   By: lumugot <lumugot@42angouleme.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/20 12:13:07 by lumugot           #+#    #+#             */
-/*   Updated: 2026/01/20 12:58:20 by lumugot          ###   ########.fr       */
+/*   Updated: 2026/01/20 19:16:57 by lumugot          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,12 +46,12 @@ void	execute_command(const char *cmd)
 	if (len == 4 && ft_strncmp(cmd,	"help", 4) == 0)
 	{
 		printk("Commands:\n");
-		printk("help   - show this message\n");
-		printk("clear  - clear screen\n");
-		printk("reboot - reboot machine\n");
-		printk("halt   - stop cpu\n");
-		printk("gdt    - print gdt\n");
-		printk(".....  - print easter egg\n");
+		printk("help		 - show this message\n");
+		printk("clear		 - clear screen\n");
+		printk("reboot		 - reboot machine\n");
+		printk("halt		 - stop cpu\n");
+		printk("gdt			 - print gdt\n");
+		printk("Hello there  - print easter egg\n");
 	}
 	
 	else if (len == 5 && ft_strncmp(cmd, "clear", 5) == 0)
@@ -64,8 +64,19 @@ void	execute_command(const char *cmd)
 		asm volatile ("cli; hlt");
 	
 	else if (len == 3 && ft_strncmp(cmd, "gdt", 3) == 0)
+	{
+		terminal_set_color(VGA_COLOR_WHITE);
 		print_gdt();
+		terminal_set_color(VGA_COLOR_LIGHT_RED2);
+	}
 
 	else if (len == 5 && ft_strncmp(cmd, "stack", 5) == 0)
+	{
+		terminal_set_color(VGA_COLOR_WHITE);
 		print_stack();
+		terminal_set_color(VGA_COLOR_LIGHT_RED2);
+	}
+
+	else if (ft_strncmp(cmd, "Hello there", 11) == 0)
+		printk("General Grievous\n");
 }

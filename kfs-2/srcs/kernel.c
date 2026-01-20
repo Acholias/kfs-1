@@ -417,11 +417,18 @@ void	draw_screen_index()
 	}
 }
 
+void	need_help(void)
+{
+	terminal_set_color(VGA_COLOR_LIGHT_BROWN);
+	printk("If you don't know what to write, try 'help'\n");
+	terminal_set_color(VGA_COLOR_LIGHT_RED2);
+}
+
 void	kernel_main(void)
 {
 	terminal_initialize();
 	gdt_init();
-	print_gdt();
+	need_help();
 	print_prompt();
 	keyboard_handler_loop();
 }

@@ -6,7 +6,7 @@
 /*   By: lumugot <lumugot@42angouleme.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/19 22:12:41 by lumugot           #+#    #+#             */
-/*   Updated: 2026/01/20 12:45:27 by lumugot          ###   ########.fr       */
+/*   Updated: 2026/01/20 19:19:01 by lumugot          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,14 +59,17 @@ void	gdt_init(void)
 	gdt_set_gate(GDT_USER_STACK_SEGMENT, 0, 0xFFFFFFFF, GDT_USER_DATA_ACCESS | GDT_GROW_DOWN, GDT_FLAGS_32BIT);
 
 	gdt_flush((u32)&gdt_ptr);
-
-	printk("[GDT] Initialized at 0x%x with %d entries\n", GDT_BASE_ADRESS, GDT_ENTRIES_COUNT);
 }
 
 void	print_gdt(void)
 {
+	terminal_set_color(VGA_COLOR_LIGHT_CYAN);
+	printk("[GDT] Initialized at 0x%x with %d entries\n", GDT_BASE_ADRESS, GDT_ENTRIES_COUNT);
+
 	printk("GDT base:  0x%x\n", gdt_ptr.base);
 	printk("GDT limit: 0x%x\n", gdt_ptr.limit);
+
+	terminal_set_color(VGA_COLOR_LIGHT_RED2);
 }
 
 void	print_stack(void)
