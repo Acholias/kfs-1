@@ -2,17 +2,37 @@ ENTRY(_start)
 
 SECTIONS
 {
-	. = 2M;
+	. = 0x00000800;
 
-	.text BLOCK(4K) : ALIGN(4K)
+	.gdt ALIGN(8) :
+	{
+		_gdt_start = .;
+		. = . + 56;
+		_gdt_end = .;
+	}
+
+	. = 0x00100000;
+
+	.multiboot BLOCK(4K) : ALIGN(4K)
 	{
 		*(.multiboot)
-		*(.text)
 	}
 	
+	.text BLOCK(4K) : ALIGN(4K)
+	{
+		*(.text)
+	}
+
+	.data BLOCK(4K) : ALIGN(4K)
+	{
+		*(.data)
+	}
+
 	.bss BLOCK(4K) : ALIGN(4K)
 	{
 		*(COMMON)
 		*(.bss)
 	}
+
+	_kernel_end = .;
 }

@@ -1,6 +1,7 @@
 #include "../includes/kernel.h"
 #include "../includes/stdbool.h"
 #include "../includes/io.h"
+#include "../includes/gdt.h"
 
 size_t			terminal_row = 0;
 size_t			terminal_column = 0;
@@ -13,6 +14,9 @@ static bool	shift_pressed =	false;
 static bool	caps_lock =	false;
 static bool	ctrl_pressed = false;
 static bool alt_pressed = false;
+
+static	char	input_buffer[INPUT_MAX];
+static	size_t	input_len = 0;
 
 static const char scancode_to_ascii[128] = {
     0,27,'1','2','3','4','5','6','7','8',
@@ -198,6 +202,9 @@ void	handle_backspace()
 {
 	if (terminal_column > PROMPT_LENGTH)
 	{
+		--input_len;
+		input_buffer[input_len] = 0;
+
 		--terminal_column;
 		terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
 		set_cursor(terminal_row, terminal_column);
@@ -218,12 +225,17 @@ void	handle_regular_char(char c)
 	if (terminal_column >= VGA_WIDTH - 1)
 		return ;
 
+	input_buffer[input_len++] = c;
+	input_buffer[input_len] = 0;
+
 	terminal_putchar(c);
 }
 
 void	handle_enter()
 {
 	terminal_putchar('\n');
+	execute_command(input_buffer);
+	input_len = 0;
 	print_prompt();
 }
 
@@ -408,7 +420,8 @@ void	draw_screen_index()
 void	kernel_main(void)
 {
 	terminal_initialize();
-	printk("%d\n", 42);
+	gdt_init();
+	print_gdt();
 	print_prompt();
 	keyboard_handler_loop();
 }

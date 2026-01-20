@@ -14,6 +14,8 @@
 
 # define PROMPT_LENGTH	9
 
+# define INPUT_MAX		256
+
 # define CTRL_PRESS		0x1D
 # define CTRL_RELEASE	0x9D
 # define KEY_C			0x2E
@@ -71,6 +73,7 @@ void	terminal_initialize();
 void	terminal_set_color(u8 color);
 void	set_cursor(u16 row, u16 col);
 void	terminal_putentry(char c, u8 color, size_t x, size_t y);
+void	terminal_clear_screen(void);
 void	terminal_scroll();
 void	terminal_putchar(char c);
 void	terminal_write(const char *data, size_t size);
@@ -89,5 +92,8 @@ void	save_screen(size_t screen_id);
 void	load_screen(size_t screen_id);
 void	switch_screen(size_t new_screen_id);
 void	draw_screen_index();
+
+// shell.c
+void	execute_command(const char *cmd);
 
 #endif
