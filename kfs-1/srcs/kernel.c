@@ -8,6 +8,7 @@ u8				terminal_color = 0;
 volatile u16	*terminal_buffer = 0;
 size_t			current_screen = 0;
 t_screen		screens[NUM_SCREENS];
+size_t			input_end = PROMPT_LENGTH;
 
 static bool	shift_pressed =	false;
 static bool	caps_lock =	false;
@@ -52,6 +53,7 @@ void	terminal_initialize()
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);
 	terminal_buffer = (u16*)VGA_MEMORY;
 	current_screen = 0;
+	input_end = PROMPT_LENGTH;
 	
 	size_t	y = 0;
 	while (y < VGA_HEIGHT)
@@ -70,6 +72,7 @@ void	terminal_initialize()
 	{
 		screens[s].save_row = 0;
 		screens[s].save_column = 0;
+		screens[s].save_input_end = PROMPT_LENGTH;
 		screens[s].save_color = vga_entry_color(VGA_COLOR_LIGHT_RED2, VGA_COLOR_BLACK);	
 		ft_memcpy(screens[s].save_buffer, (void *)terminal_buffer, VGA_WIDTH * VGA_HEIGHT * sizeof(u16));
 	}
@@ -192,6 +195,7 @@ void	handle_ctrl_c()
 		terminal_scroll();
 	
 	print_prompt();
+	input_end = PROMPT_LENGTH;
 }
 
 void	handle_backspace()
@@ -201,6 +205,9 @@ void	handle_backspace()
 		--terminal_column;
 		terminal_putentry(' ', terminal_color, terminal_column, terminal_row);
 		set_cursor(terminal_row, terminal_column);
+	
+		if (terminal_column < input_end)
+			input_end = terminal_column;
 	}
 }
 
@@ -208,6 +215,7 @@ void	handle_ctrl_l()
 {
 	terminal_clear_screen();
 	print_prompt();
+	input_end = PROMPT_LENGTH;
 }
 
 void	handle_regular_char(char c)
@@ -217,14 +225,18 @@ void	handle_regular_char(char c)
 
 	if (terminal_column >= VGA_WIDTH - 1)
 		return ;
-
+	
 	terminal_putchar(c);
+
+	if (terminal_column > input_end)
+		input_end = terminal_column;
 }
 
 void	handle_enter()
 {
 	terminal_putchar('\n');
 	print_prompt();
+	input_end = PROMPT_LENGTH;
 }
 
 void	process_scancode(u8 scancode)
@@ -279,7 +291,7 @@ void	arrow_handler(u8 scancode)
 	}
 	else if (scancode == RIGHT_ARROW)
 	{
-		if (terminal_column < VGA_WIDTH - 1)
+		if (terminal_column < input_end && terminal_column < VGA_WIDTH - 1)
 		{
 			++terminal_column;
 			set_cursor(terminal_row, terminal_column);
@@ -357,6 +369,7 @@ void	save_screen(size_t screen_id)
 
 	screens[screen_id].save_row = terminal_row;
 	screens[screen_id].save_column = terminal_column;
+	screens[screen_id].save_input_end = input_end;
 	screens[screen_id].save_color = terminal_color;
 }
 
@@ -370,6 +383,7 @@ void	load_screen(size_t screen_id)
 
 	terminal_row = screens[screen_id].save_row;
 	terminal_column = screens[screen_id].save_column;
+	input_end = screens[screen_id].save_input_end;
 	terminal_color = screens[screen_id].save_color;
 	if (terminal_column == 0)
 		terminal_column = PROMPT_LENGTH;
@@ -405,7 +419,7 @@ void	draw_screen_index()
 	}
 }
 
-void	kernel_main(void)
+void	kernel_main()
 {
 	terminal_initialize();
 	printk("%d\n", 42);

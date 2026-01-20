@@ -58,6 +58,7 @@ typedef struct	s_screen
 {
 	size_t		save_row;
 	size_t		save_column;
+	size_t		save_input_end;
 	u8			save_color;
 	u16			save_buffer[VGA_WIDTH * VGA_HEIGHT];
 }	t_screen;
