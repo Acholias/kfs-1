@@ -6,7 +6,7 @@
 /*   By: lumugot <lumugot@42angouleme.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/20 12:13:07 by lumugot           #+#    #+#             */
-/*   Updated: 2026/01/21 07:48:07 by lumugot          ###   ########.fr       */
+/*   Updated: 2026/01/23 17:31:41 by lumugot          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,8 @@ void	execute_command(const char *cmd)
 		printk("clear        - clear screen\n");
 		printk("reboot       - reboot machine\n");
 		printk("halt         - stop cpu\n");
+		printk("exit         - exit kernel\n");
+		printk("stack        - print stack\n");
 		printk("gdt          - print gdt\n");
 		printk("Hello there  - print easter egg\n");
 	}
@@ -63,6 +65,9 @@ void	execute_command(const char *cmd)
 	else if (len == 4 && ft_strncmp(cmd, "halt", 4) == 0)
 		asm volatile ("cli; hlt");
 	
+	else if (len == 4 && ft_strncmp(cmd, "exit", 4) == 0)
+		outw(0x604, 0x2000);
+
 	else if (len == 3 && ft_strncmp(cmd, "gdt", 3) == 0)
 	{
 		terminal_set_color(VGA_COLOR_WHITE);

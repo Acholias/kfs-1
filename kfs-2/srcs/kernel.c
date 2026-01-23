@@ -140,13 +140,17 @@ void	terminal_putchar(char c)
 
 		if (terminal_row >= VGA_HEIGHT)
 			terminal_scroll();
+
 		set_cursor(terminal_row, terminal_column);
 	}
 	else
 	{
 		terminal_putentry(c, terminal_color, terminal_column, terminal_row);
 		++terminal_column;
-		if (terminal_column >= VGA_WIDTH - 14 && terminal_row == 0)
+
+		size_t max_col = (terminal_row == 0) ? (VGA_WIDTH - 14) : VGA_WIDTH;
+		
+		if (terminal_column >= max_col)
 		{
 			terminal_column = 0;
 			++terminal_row;
@@ -174,11 +178,6 @@ void	clear_line()
 	terminal_column = PROMPT_LENGTH;
 	set_cursor(terminal_row, terminal_column);
 	print_prompt();
-}
-
-void	redraw_input_line()
-{
-	set_cursor(terminal_row, terminal_column);
 }
 
 void	handle_ctrl_c()

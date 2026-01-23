@@ -20,4 +20,10 @@ u8	inb(u16 port)
 	return (ret);
 }
 
+static __inline__
+void	outw(u16 port, u16 value)
+{
+	__asm__ volatile ("outw %0, %1" : : "a"(value), "Nd"(port));
+}
+
 #endif

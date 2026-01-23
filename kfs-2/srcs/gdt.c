@@ -6,7 +6,7 @@
 /*   By: lumugot <lumugot@42angouleme.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/19 22:12:41 by lumugot           #+#    #+#             */
-/*   Updated: 2026/01/20 19:19:01 by lumugot          ###   ########.fr       */
+/*   Updated: 2026/01/23 16:14:05 by lumugot          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,5 +90,5 @@ void	print_stack(void)
 	printk("-------------|--------|----------\n");
 
 	for (int i = 0; i < 16 && (esp + i) <= ebp; i++)
-		printk("0x%x | +%-5d | 0x%x\n", (u32)(esp + i), i * 4, *(esp + i));
+		printk("0x%x | +%d | 0x%x\n", (u32)(esp + i), i * 4, *(esp + i));
 } 
